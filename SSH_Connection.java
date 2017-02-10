@@ -3,15 +3,18 @@ package backbone;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
+
 import java.io.*;
 
 public class SSH_Connection {
 	
 	private static String user = "smallcj";
 	private static String password = "900649073";
+	private static ChannelSftp sftpChannel;
+	private static BufferedReader br;
+	private static Session session;
 	
-	public void connect() {
-		// TODO Auto-generated method stub
+	public static void connect() {
 		
 		String host = "student.cs.appstate.edu";
 		int port = 22;
@@ -21,31 +24,29 @@ public class SSH_Connection {
 		try
         {
         JSch jsch = new JSch();
-        Session session = jsch.getSession(user, host, port);
+        session = jsch.getSession(user, host, port);
             session.setPassword(password);
             session.setConfig("StrictHostKeyChecking", "no");
         System.out.println("Establishing Connection...");
         session.connect();
             System.out.println("Connection established.");
         System.out.println("Crating SFTP Channel.");
-        ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
+        sftpChannel = (ChannelSftp) session.openChannel("sftp");
         sftpChannel.connect();
         System.out.println("SFTP Channel created.");
 
-
         InputStream out= null;
         out= sftpChannel.get(remoteFile);
-        BufferedReader br = new BufferedReader(new InputStreamReader(out));
+        br = new BufferedReader(new InputStreamReader(out));
         String line;
         while ((line = br.readLine()) != null)
             System.out.println(line);
-        br.close();
-        sftpChannel.disconnect();
+        
         }
     catch(Exception e){System.err.print(e);}
     }
 	
-	public String setUsername(String uName)
+	public static String setUsername(String uName)
 	{
 		try 
 		{
@@ -59,7 +60,7 @@ public class SSH_Connection {
 		
 	}
 
-	public String setPassword(String pw)
+	public static String setPassword(String pw)
 	{
 		try 
 		{
@@ -70,6 +71,39 @@ public class SSH_Connection {
 		{
 			return "Failed";
 		}
+		
+	}
+	
+	public static void closeUp()
+	{
+		try 
+		{
+			br.close();
+				System.out.println("BufferedReader closed");
+			sftpChannel.disconnect();
+				System.out.println("SFTPChannel closed");
+			session.disconnect();
+				System.out.println("Session closed");
+		}
+		catch (Exception e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public static String getPath()
+	{
+		try
+		{
+			return sftpChannel.pwd();
+		}
+		catch (Exception e)
+		{
+			
+		}
+		
+		return "?";
+		
 		
 	}
 	
